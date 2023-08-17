@@ -3,7 +3,7 @@ import {
   ClientCreateRoomSocketType,
   ClientJoinRoomSocketType,
 } from "./@types/socketApiTypes";
-import { RoomsListType } from "./@types/Room";
+import { RoomType, RoomsListType } from "./@types/Room";
 import { Response } from "express";
 import { Socket } from "socket.io";
 
@@ -36,14 +36,17 @@ io.on("connection", (socket: Socket) => {
   socket.on(
     "client_create_room",
     (
-      { roomId, gameSettings }: ClientCreateRoomSocketType,
-      callback: (arg: string) => void
+      { roomId, gameSettings, hostName }: ClientCreateRoomSocketType,
+      callback: (arg: RoomType) => void
     ) => {
+      console.log(hostName)
       roomsList[roomId] = new Room(roomId, socket.id, gameSettings);
-      roomsList[roomId].addPlayer(socket.id, gameSettings.host);
+      roomsList[roomId].addPlayer(socket.id, hostName);
       socket.join(roomId);
-      callback(roomId);
-      console.log(`socket id ${socket.id} created and joined room ${roomId}`);
+      callback(roomsList[roomId]);
+      console.log(
+        `CREATE : socket id ${socket.id} created and joined room ${roomId}`
+      );
     }
   );
   // DISCONNECT
@@ -55,12 +58,17 @@ io.on("connection", (socket: Socket) => {
     "client_join_room",
     (
       { roomId, playerName }: ClientJoinRoomSocketType,
-      callback: () => void
+      callback: (arg: RoomType) => void
     ) => {
       if (!roomsList.hasOwnProperty(roomId)) {
+        console.log('JOIN ERROR : room doesnt exist')
         return;
       }
       roomsList[roomId].addPlayer(socket.id, playerName);
+      socket.join(roomId);
+      console.log(roomsList[roomId]);
+      callback(roomsList[roomId]);
+      console.log(`JOIN : socket id ${socket.id} joined room ${roomId}`);
     }
   );
 });

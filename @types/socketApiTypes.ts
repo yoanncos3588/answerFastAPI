@@ -8,4 +8,5 @@ export type ClientJoinRoomSocketType = {
 export type ClientCreateRoomSocketType = {
   roomId: string;
   gameSettings: GameSettingsType;
+  hostName: string;
 };

@@ -1,4 +1,5 @@
-import { PlayerType } from "./Player";
+import { PlayerListType, PlayerType } from "./Player";
+import { GameManageType } from "./gameManageType";
 import { GameSettingsType } from "./gameSettingsType";
 
 export type RoomsListType = {
@@ -8,8 +9,9 @@ export type RoomsListType = {
 export type RoomType = {
   id: string;
   hostId: string;
+  gameManage: GameManageType;
   gameSettings: GameSettingsType;
-  players: Array<PlayerType>;
+  players: PlayerListType;
   getPlayer: (id: string) => PlayerType;
   addPlayer: (id: string, name: string) => void;
 };
