@@ -39,7 +39,6 @@ io.on("connection", (socket: Socket) => {
       { roomId, gameSettings, hostName }: ClientCreateRoomSocketType,
       callback: (arg: RoomType) => void
     ) => {
-      console.log(hostName)
       roomsList[roomId] = new Room(roomId, socket.id, gameSettings);
       roomsList[roomId].addPlayer(socket.id, hostName);
       socket.join(roomId);
@@ -50,9 +49,21 @@ io.on("connection", (socket: Socket) => {
     }
   );
   // DISCONNECT
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
+  socket.on("disconnecting", () => {
+    console.log(`user disconnecting ${socket.id}`);
+    socket.rooms.forEach((roomId) => {
+      // socket.io garde le socketid dans les rooms d'un socket
+      if (roomId !== socket.id) {
+        io.to(roomId).emit("client_disconnect", socket.id);
+        roomsList[roomId].deletePlayer(socket.id);
+      }
+    });
   });
+  // DISCONNECT
+  socket.on("disconnect", () => {
+    console.log(`user disconnected ${socket.id}`);
+  });
+
   // JOIN
   socket.on(
     "client_join_room",
@@ -61,16 +72,27 @@ io.on("connection", (socket: Socket) => {
       callback: (arg: RoomType) => void
     ) => {
       if (!roomsList.hasOwnProperty(roomId)) {
-        console.log('JOIN ERROR : room doesnt exist')
+        console.log("JOIN ERROR : room doesnt exist");
         return;
       }
       roomsList[roomId].addPlayer(socket.id, playerName);
       socket.join(roomId);
-      console.log(roomsList[roomId]);
       callback(roomsList[roomId]);
+      io.to(roomId).emit(
+        "new_client_in_room",
+        roomsList[roomId].players[socket.id]
+      );
       console.log(`JOIN : socket id ${socket.id} joined room ${roomId}`);
     }
   );
+  socket.on("client_left_the_room", ({ roomId }) => {
+    console.log(
+      `on client_left_the_room - roomId : ${roomId} - socketId : ${socket.id}`
+    );
+    console.log(roomId);
+    roomsList[roomId].deletePlayer(socket.id);
+    io.to(roomId).emit("client_disconnect", socket.id);
+  });
 });
 
 server.listen(3000, () => {

@@ -14,4 +14,5 @@ export type RoomType = {
   players: PlayerListType;
   getPlayer: (id: string) => PlayerType;
   addPlayer: (id: string, name: string) => void;
+  deletePlayer: (id: string) => void;
 };

@@ -22,6 +22,10 @@ class Room {
     this.players[id] = new Player(id, name);
   }
 
+  deletePlayer(id: number) {
+    delete this.players[id];
+  }
+
   getPlayer(id: number) {
     return this.players[id];
   }
